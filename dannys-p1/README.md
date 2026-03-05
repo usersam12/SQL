@@ -13,55 +13,42 @@ The dataset is seperated into three tables: "sales", "menu", and "member". "sale
 ## Key Questions
 What are the spending habits of three frequent customers of Danny's Diner?
 Which customers will then gain rewards points to create returning customers?
-
+Should Danny's Diner make changes to their menu based on customer data?
 
 ## SQL Techniques Used
-- JOINs, Window Functions, Data Cleaning functions (COALESCE, TRIM)
+JOINs, Window Functions, Data Cleaning functions (COALESCE, TRIM)
 
 ## Key Findings
-Customers A and B are the most valuable of the three examplified by an overall spend of $76 and $74 in a one month period and a high visit frequency of 4 and 6 days visited in one month. Customer A increases their overall value further by increasing their spend by 48% following their membership join date. 
 
-Additionally, the most popular item was ramen with 100% more purchases than the second most popular item, curry. Customer C ordered three total items in January, and all three were ramen. Sushi was the least ordered dish on the menu, and only customer B ordered sushi a second time after their first order date. 
+Customers A and B are the most valuable of the three, with overall spend of $76 and $74 respectively over a one-month period and high visit frequencies of 4 and 6 days. Customer A further demonstrates strong engagement, increasing spend by 48% following their membership join date.
+The most popular item was ramen, with 100% more purchases than the second most popular item, curry. Notably, all three of Customer C's orders in January were ramen. Sushi was the least ordered item overall, with only Customer B ordering it more than once.
 
-Sushi is thought to be a high profit item because of the inexpensive nature of the ingridients in the dish (rice and seaweed). But, the cost of labor in a roll of sushi is extremely high due to skilled chefs making the dish. Curry on the other hand has more expensive individual ingredients, but can be batched well in advance, and the training required to be a curry chef is substantially less than a sushi chef making execution at volume easier. While cost of goods sold (COGS) was not an included metric within any of the tables, research shows that while sushi has a high gross margin on average (65-75%), it has the lowest net margin (5-10%) of the three menu items.
+While COGS was not included in the dataset, industry research indicates that sushi restaurants typically operate with gross margins of 60–70% but net profit margins of only 5–20% depending on format (Dojo Business) — largely driven by the high labor cost of skilled preparation. Ramen and curry, by contrast, are more scalable dishes that can be prepared in volume with less specialized labor, supporting stronger margins at scale.
+Based on order frequency, labor costs, and net margin profile, I recommend removing sushi from the menu to improve operational efficiency and allow greater focus on ramen and curry.
 
-My reccomendation based on the order frequency of sushi, COGS, and training expenses for sushi chefs, is that sushi should be removed from the menu. This will lead to greater operational efficiency and an ability to focus on ramen and curry which have better margins at scale.
+Additionally, Danny's should develop a concrete strategy for enrolling new customers in the rewards program. Customer A's post-membership spending increase suggests meaningful retention upside. The current structure — 10 points per $1 spent — is appropriately simple. Research by Frederick Reichheld of Bain & Company shows that increasing customer retention rates by just 5% can increase profits by 25–95% (Harvard Business Review), making investment in this area well worth prioritizing.
 
-Secondly, there should be a concrete strategy for adding new customers to the rewards program to drive customer retention. One wasn't detailed in the case study prompt, but given customer A's willingness to spend more on return, there should be investment in the strategy. Danny's does well by keeping the reward structure simple at 10 points earned for each $1 spent. A report by the Harvard Business Review claims that on average, a 5% increase in customer retention rates results in a 25%–95% increase in profits.
+Citations:
+Gallo, A. (2014, October 29). The value of keeping the right customers. Harvard Business Review. https://hbr.org/2014/10/the-value-of-keeping-the-right-customers
 
-Sources:
-Ramen
-https://sg.finance.yahoo.com/news/much-does-bowl-ajisen-ramen-000002827.html?guccounter=1&guce_referrer=aHR0cHM6Ly9jbGF1ZGUuYWkv&guce_referrer_sig=AQAAAFzAdaEYnvO_pizdSuupCl3R9KQr8SS6ubgboI81rq9f79cTVkJHLILRchpTQlodBZ-lsdQVlaBemyyAL2moEaxuBPpUbWn2uEONZFNNBu0OCx83aUFTBsJTGd453fwob22pxn7pa7AjyjQnugZGSLG5LGWhoxjz-mlOWZ75IIRb
-
-Sushi
-https://dojobusiness.com/blogs/news/sushi-restaurant-profit-margins
-
-Curry
-https://beambox.com/townsquare/average-restaurant-profit-margins
-
-HBR
-https://hbr.org/2014/10/the-value-of-keeping-the-right-customers
+Dojo Business Team. (2025, June 16). What are the profit margins of sushi restaurants? BusinessDojo. https://dojobusiness.com/blogs/news/sushi-restaurant-profit-margins
 
 
 
 ## Process Notes
 ### Approach
-The first task in approaching this case study was the examine the tables. I reviewed the relationship schema, data types, and individual entries to determine if the data was structured correctly for analysis. I made no alterations to any of the three supplied tables. 
+The first step in approaching this case study was to examine the tables. I reviewed the relationship schema, data types, and individual entries to determine whether the data was structured correctly for analysis. No alterations were made to any of the three supplied tables.
+My approach to each question was to read carefully and consider the intent and consequences of each query. The first two questions were straightforward — asking how much each customer spent and how many days each had visited the restaurant. The first query required a single join, while the second required none.
 
-My approach to each question was to both read carefully and consider the itention and consequences of each query. The first two questions were simple asking how much does each customer spend and how many days has each customer visited the restaurant. The first query only required a single join, while the second required none at all. 
+By the third question, which asks for the first item purchased by each customer, the problem became more complex because customers were purchasing multiple items in the same visit. This required a window function partitioned by customer to ensure only one item was returned per person. I used ROW_NUMBER() to rank each customer's purchases chronologically.
 
-By the third question, which asks for the first item purchased by each customer, I noticed that the answer became difficult because customers were purchasing more than one item at once. This required the use of a window function in order to partition by customer to make sure only one item was listed. I used ROW_NUMBER() in order to rank the sales for each customer.
+The same challenge appeared in question five, which asks for the most popular item per customer. This was resolved by switching to RANK() and counting product_id from the sales table.
 
-This same issue appeared in question five, when the study asked for the most popular item for each customer. This required changing the window function to RANK() and counting the product_id from the sales table. 
+Question six introduced the members table to find the first item purchased after a customer joined. This is meaningful context for retention strategy, as it can inform how rewards are tailored to individual customers. The key challenge here was placing the WHERE clause inside the subquery rather than the outer query — a mistake I initially made, which caused the rank of 1 to be assigned to each customer's very first purchase overall rather than their first post-membership purchase. I caught the error quickly and corrected it. Question seven followed a similar structure and didn't present the same difficulty.
 
-By question six, the study added the members table in order to find the first item purchased immediatly after the customer became a member. This information is important in determining how best to retain the individual customer, including tailoring rewards to the individual. What became challenging in this question was making sure to include a WHERE() clause within the within the subquery as opposed to including this in the outside query. Originally, I made the mistake of placing it in the outside, which assigned the rank of 1 to the first purchase the customer ever made. I saw this result, and quickly adjusted. Question seven was very similar, and didn't require the same problem-solving.
+Question eight was a useful exercise in data formatting. The query asks for both item quantity and total spend after membership in a single output, which required two joins and a COALESCE() function to clean a spend column that was returning excessive decimal places.
 
-Question eight was a good excersize in data formatting. The question asks for both item quantity and customer spend after membership in the same query. This required two joins, and a COALESCE() function to clean the spend column, which included an endless line of decimals.
-
-Questions nine and ten were the most difficult in that a points value had to be assigned to a dollar value. At first, I felt each individual item should be assigned a binary value which could then be multiplied based on the item type. This failed as the points assigned in this case would be 1 point for ever dollar spent, not 10 points for every dollar spent. The answer was now clearly to create a CASE WHEN statement where sushi could be multiplied by 2 on its own, and all other menu items could be in the ELSE statement. Question 10 was very similar, but required adding two clauses which filtered date: the 2 times multiplier for the first week, and the total points only within January. The date filter for the week after joining was placed within the subquery, and the filter for January was placed outside. This allowed the multiplier to be calculated first, shrinking the volume of data being queried.
-
-
-### Challenges
+Questions nine and ten were the most challenging, as a points value had to be derived from dollar spend. My initial instinct was to assign a binary flag to each item and multiply from there — but this produced 1 point per dollar rather than the correct 10. The solution was a CASE WHEN statement that applied a 2x multiplier to sushi specifically, with all other items handled in the ELSE clause. Question ten built on this logic but added two date filters: the 2x multiplier for the first week after joining, and a total points cap within January. Placing the week filter inside the subquery and the January filter outside meant the multiplier was calculated first on a smaller dataset, improving both accuracy and efficiency.
 
 ### What I'd do differently in the future
 
